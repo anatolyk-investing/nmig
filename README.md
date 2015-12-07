@@ -1,2 +1,2 @@
 # nmig
-<h4>This project is for learning purposes only</h4>
+<h4>This project is for learning purposes only.</h4>

@@ -220,7 +220,7 @@ FromMySQL2PostgreSQL.prototype.connect = function(self) {
 		console.log('\t--Check DB connections...');
 		
 		// Check if MySQL server is connected.
-		// If not connected - connect.
+		// If not connected - connect. 
 		if (!self._mysql) {
 			console.log('\t--Connecting to MySQL...');
 			var arrSourceConnectionString = self._sourceConString.split(',');

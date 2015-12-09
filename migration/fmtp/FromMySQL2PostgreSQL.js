@@ -56,18 +56,8 @@ FromMySQL2PostgreSQL.prototype.boot = function(self) {
         self._tablesToMigrate     = [];
         self._viewsToMigrate      = [];
         self._summaryReport       = [];
-        
-        var params          = self._sourceConString.split(',');
-        var conStringParams = params[0].split(';');
-        
-        for (var i = 0; i < conStringParams.length; i++) {
-            if (conStringParams[i].indexOf('dbname') === 0) {
-                var arrPair = conStringParams[i].split('=');
-                self._mySqlDbName = arrPair[1];
-                break;
-            }
-        }
-        
+        self._mySqlDbName         = self._sourceConString.database;
+		
         console.log('\t--Boot accomplished...');
         resolve(self);
     });
@@ -234,65 +224,11 @@ FromMySQL2PostgreSQL.prototype.connect = function(self) {
 			// If not connected - connect.
 			if (!self._mysql) {
 				self.log(self, '\t--Connecting to MySQL...');
-				
-				/*var arrSourceConnectionString = self._sourceConString.split(',');
-				var strConStr                 = arrSourceConnectionString[0];
-				var arrConStr                 = strConStr.split(';');
-				var credentials               = {};
-				
-				for (var i = 0; i < arrConStr.length; i++) {
-					var arrPair = arrConStr[i].split('=');
-
-					if (arrPair[0].indexOf('host') !== -1) {
-						credentials['host'] = arrPair[1];
-					} else if (arrPair[0] === 'port') {
-						credentials['port'] = arrPair[1];
-					} else if (arrPair[0] === 'dbname') {
-						credentials['database'] = arrPair[1];
-					}
-				}
-				
-				// Skip arrConStr.
-				for (var i = 1; i < arrSourceConnectionString.length; i++) {
-					if (arrSourceConnectionString[i] === 'charset') {
-						credentials['charset'] = arrSourceConnectionString[i];
-					} else if (credentials['user'] === undefined) {
-						credentials['user'] = arrSourceConnectionString[i];
-					} else {
-						credentials['password'] = arrSourceConnectionString[i];
-					}
-				}*/
-				
 				var pool = mysql.createPool(self._sourceConString);
 				
 				if (pool) {
 					self.log(self, '\t--MySQL server is connected...');
 					self._mysql = pool;
-					
-					// TEST START ///////////////////////////////////////////////////////////////
-					self._mysql.getConnection(function(error, connection) {
-						if (error) {
-							self.log(self, '\t--Cannot connect to MySQL server...');
-							mysqlReject();
-						} else {
-							var sql = 'SELECT * FROM `admins`';
-							connection.query(sql, function(strErr, rows) {
-								if (strErr) {
-									self.generateError(self, strErr, sql);
-								} else {
-									rows.forEach(function(objRow) {
-										console.log('MYSQL');
-										console.log(JSON.stringify(objRow));
-									});
-								}
-								// Release connection back to the pool.
-								connection.release();
-								mysqlResolve(self);
-							});
-						}
-					});
-					// TEST END ///////////////////////////////////////////////////////
-					
 					mysqlResolve(self);
 				} else {
 					self.log(self, '\t--Cannot connect to MySQL server...');
@@ -310,26 +246,6 @@ FromMySQL2PostgreSQL.prototype.connect = function(self) {
 								+ self._targetConString.database + '?client_encoding=' + self._targetConString.charset;
 			
 			self._targetConString = targetConString;
-			
-			// TEST START ///////////////////////////////////////////////////////////////////
-			pg.connect(self._targetConString, function(error, client, done) {
-				if (error) {
-					return console.error('error fetching client from pool', error);
-				}
-
-				// TEST.
-				client.query('SELECT $1::int AS number', ['3'], function(err, result) {
-					//call `done()` to release the client back to the pool
-					done();
-					if (err) {
-						return console.error('error running query', err);
-					}
-					console.log('PGSQL Output3: ' + result.rows[0].number);
-				});
-			});
-			// TEST END //////////////////////////////////////////////////////////////////
-			
-			
 			pgsqlResolve(self);
 		});
 		
@@ -385,6 +301,48 @@ module.exports.FromMySQL2PostgreSQL = FromMySQL2PostgreSQL;
 
 // node C:\xampp\htdocs\nmig\main.js C:\xampp\htdocs\nmig\sample_config.json  
 // http://stackoverflow.com/questions/6731214/node-mysql-connection-pooling 
+
+// TEST MySQL START ///////////////////////////////////////////////////////////////
+/*self._mysql.getConnection(function(error, connection) {
+	if (error) {
+		self.log(self, '\t--Cannot connect to MySQL server...');
+		mysqlReject();
+	} else {
+		var sql = 'SELECT * FROM `admins`';
+		connection.query(sql, function(strErr, rows) {
+			if (strErr) {
+				self.generateError(self, strErr, sql);
+			} else {
+				rows.forEach(function(objRow) {
+					console.log('MYSQL');
+					console.log(JSON.stringify(objRow));
+				});
+			}
+			// Release connection back to the pool.
+			connection.release();
+			mysqlResolve(self);
+		});
+	}
+});*/
+// TEST MySQL END ///////////////////////////////////////////////////////
+
+// TEST PostgreSQL START ///////////////////////////////////////////////////////////////////
+/*pg.connect(self._targetConString, function(error, client, done) {
+	if (error) {
+		return console.error('error fetching client from pool', error);
+	}
+
+	// TEST.
+	client.query('SELECT $1::int AS number', ['3'], function(err, result) {
+		//call `done()` to release the client back to the pool
+		done();
+		if (err) {
+			return console.error('error running query', err);
+		}
+		console.log('PGSQL Output3: ' + result.rows[0].number);
+	});
+});*/
+// TEST PostgreSQL END //////////////////////////////////////////////////////////////////
 
 /*
  var path = 'public/uploads/file.txt',
